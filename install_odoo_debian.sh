@@ -51,7 +51,8 @@ ENABLE_SSL="False"
 ADMIN_EMAIL="odoo@example.com"
 # configuracion de servidor ssh
 DISABLE_SSH_PASS="False"
-#
+# Restringir al acceso a la url /web/database/selector solo a su IP publica, es decir, por la que se accedio por SSH
+RETRICT_LIST_BD='false'
 
 if [ $DISABLE_SSH_PASS = "True" ]; then
     #----------------------------------------------------
@@ -251,9 +252,9 @@ else
     sudo su root -c "printf 'addons_path=${OE_HOME_EXT}/addons,${OE_HOME}/custom/addons\n' >> ${OE_CONFIG_DIR}"
 fi
 
-sudo cat <<EOF >> ${OE_CONFIG_DIR}
+cat <<EOF > ./odoo_config
 # configuracion adicional
-dbfilter = ^%d*
+dbfilter = ^%h$
 limit_memory_hard = 1684354560
 limit_memory_soft = 1147483648
 limit_request = 8192
@@ -287,6 +288,8 @@ smtp_user = cualquiera@gmail.com
 longpolling_port = $LONGPOLLING_PORT
 
 EOF
+
+sudo su root -c "cat  ./odoo_config >> $OE_CONFIG_DIR"
 
 sudo chown $OE_USER:$OE_USER ${OE_CONFIG_DIR}
 sudo chmod 640 ${OE_CONFIG_DIR}
@@ -330,6 +333,19 @@ sudo systemctl start odoo_$OE_USER.service
 # wget https://raw.githubusercontent.com/hrmuwanika/odoo/master/odoo_ee.sh
 # chmod +x odoo_ee.sh
 # ./odoo_ee.sh
+
+ssh_details=($SSH_CONNECTION)
+if [ $RETRICT_LIST_BD = 'True' ]; then
+  retrict_listbd="""
+
+  location ^~ /web/database/selector {
+    allow ${ssh_details[0]};
+    deny all;
+    proxy_pass    http://odoo;
+  }
+  
+  """
+fi
 
 #--------------------------------------------------
 # Install Nginx if needed
@@ -404,6 +420,8 @@ if [ $INSTALL_NGINX = "True" ]; then
             # by default, do not forward anything
             proxy_redirect off;
         }
+
+        $retrict_listbd
 
         location /longpolling {
             proxy_pass http://odoochat;
