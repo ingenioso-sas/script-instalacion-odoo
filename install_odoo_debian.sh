@@ -11,7 +11,7 @@
 #     sistema operativo Debian, configurando diferente puertos para cada instancia,
 #     con xmlrpc_ports
 #-------------------------------------------------------------------------------
-# para usar por favor modificar los permisos de acceso a este script
+# para usar, primero modificar los permisos de acceso a este script
 # $ sudo chmod +x odoo_install_debian.sh
 # Luego, ejecutar el script para instalar Odoo:
 # $ ./odoo_install_debian.sh
@@ -30,7 +30,7 @@ OE_PORT="8069"
 INSTALL_WKHTMLTOPDF="True"
 # Choose the Odoo version which you want to install. For example: 13.0, 12.0, 11.0 or saas-18. When using 'master' the master version will be installed.
 # IMPORTANT! This script contains extra libraries that are specifically needed for Odoo 13.0
-OE_VERSION="14.0"
+OE_VERSION="13.0"
 # Set this to True if you want to install the Odoo enterprise version!
 IS_ENTERPRISE="False"
 # Set this to True if you want to install Nginx!
@@ -53,6 +53,10 @@ ADMIN_EMAIL="odoo@example.com"
 DISABLE_SSH_PASS="False"
 # Restringir al acceso a la url /web/database/selector solo a su IP publica, es decir, por la que se accedio por SSH
 RETRICT_LIST_BD='false'
+
+if [ -f 'entorno.sh' ]; then
+  source ./entorno.sh
+fi
 
 if [ $DISABLE_SSH_PASS = "True" ]; then
     #----------------------------------------------------
@@ -114,7 +118,7 @@ echo -e "\n=================== Installing Python 3 + pip3 ======================
 sudo apt install python3 python3-pip python3-dev python3-dev python3-venv \
     python3-wheel libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev \
     libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev zlib1g-dev libfreetype6-dev \
-    liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev PyPDF2
+    liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev python3-passlib python3-pypdf2 -y
 sudo apt -f install -y
 
 echo -e "\n================== Install python packages/requirements ============================"
@@ -338,10 +342,10 @@ ssh_details=($SSH_CONNECTION)
 if [ $RETRICT_LIST_BD = 'True' ]; then
   retrict_listbd="""
 
-  location ^~ /web/database/selector {
-    allow ${ssh_details[0]};
+  location ~* /web/database/(manager|selector)$ {
+    allow $MY_IP ;
     deny all;
-    proxy_pass    http://odoo;
+    proxy_pass http://127.0.0.1:8069;
   }
   
   """
