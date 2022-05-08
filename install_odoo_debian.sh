@@ -118,11 +118,7 @@ echo -e "\n=================== Installing Python 3 + pip3 ======================
 sudo apt install python3 python3-pip python3-dev python3-dev python3-venv \
     python3-wheel libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev \
     libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev zlib1g-dev libfreetype6-dev \
-<<<<<<< HEAD
     liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev python3-passlib python3-pypdf2 -y
-=======
-    liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev
->>>>>>> 9afb7596e89aed49af69746ad69d408583de1014
 sudo apt -f install -y
 
 echo -e "\n================== Install python packages/requirements ============================"
